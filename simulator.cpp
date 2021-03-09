@@ -7,9 +7,9 @@ using namespace std;
 int R[32];  // Global array of Registers
 
 
-void PerformAdd(char a,char b, char c,int x,int y, int z)
+void PerformAdd (char a,char b, char c,int x,int y, int z)
 {
-    int p,r,q;
+    int p,q,r;
     if(a == 't')
         p = R[x];
     else if (a == 'r')
@@ -33,7 +33,7 @@ void PerformAdd(char a,char b, char c,int x,int y, int z)
 
 }
 
-void PerformSub(char a,char b,char c, int x,int y,int z)
+void PerformSub (char a,char b,char c, int x,int y,int z)
 {
     int p,q,r;
     if(a == 't')
@@ -60,7 +60,27 @@ void PerformSub(char a,char b,char c, int x,int y,int z)
 }
 
 
-void PerformAddI(char a,char b, int x,int y, int z)
+bool PerformEqual (char a,char b, int x,int y)
+{
+    int p,q,r;
+    if(a == 't')
+        p = R[x];
+    else if (a == 'r')
+        p = R[10+x];
+
+    if(b == 't')
+        q = R[y];
+    else if (b == 'r')
+        q = R[10+y];
+
+    if( p == q)
+        return true;
+    else
+        return false;
+}
+
+
+void PerformAddI (char a,char b, int x,int y, int z)
 {
     int p,q,r;
     if(a == 't')
@@ -80,7 +100,7 @@ void PerformAddI(char a,char b, int x,int y, int z)
          R[10+x] = p;
 }
 
-void PerformSubI(char a,char b, int x,int y, int z)
+void PerformSubI (char a,char b, int x,int y, int z)
 {
     int p,q,r;
     if(a == 't')
@@ -101,7 +121,7 @@ void PerformSubI(char a,char b, int x,int y, int z)
 }
 
 
-bool add_sub_Check(string sentence, string word) 
+bool add_sub_Check   ( string sentence, string word ) 
 {
     int x,y,z;
     char a,b,c;
@@ -150,7 +170,7 @@ bool add_sub_Check(string sentence, string word)
     return false; 
 }
 
-bool addi_subi_Check( string sentence, string word )
+bool addi_subi_Check ( string sentence, string word )
 {
     int x,y,z;
     char a,b;
@@ -208,14 +228,73 @@ bool addi_subi_Check( string sentence, string word )
 }
 
 
+string jump_Check ( string sentence, string word )
+{ 
+    stringstream s(sentence); 
+    string temp; 
+    string example = "fault";
+  
+    while (s >> temp) 
+    {  
+        if (temp.compare(word) == 0) 
+        {  
+            s >> temp;  // This temp will store label i.e, where to jump
+            //temp = temp+":";
+            return temp;
+        }
+        else
+            return example;
+    } 
+}
+
+string bne_Check  ( string sentence, string word )
+{
+    int x,y;
+    char a,b;
+
+    stringstream s(sentence); 
+    string temp; 
+    string wrong = "fault";
+  
+    while (s >> temp) 
+    {  
+        if (temp.compare(word) == 0) 
+        {  
+            s >> temp;  // temp[0] = '$'
+            int p=1;           
+              
+            a = temp[p++];        // storing variable name of 1st register
+            x = temp[p++] - 48;   // storing value name of 1st register
+
+
+            s >> temp;  // temp[0] = '$'  
+            p=1;           
+              
+            b = temp[p++];        // storing variable name of 2nd register
+            y = temp[p++] - 48;   // storing value name of 2nd register
+
+            s >> temp; // This temp will be having our label 
+
+            if( PerformEqual(a,b,x,y) == true )
+                return wrong; // So that control just goes to next line
+            else
+                return temp;   
+            
+        }
+        else
+            return wrong;
+    } 
+}
+
+
 string search_label(string str) 
 { 
-
     string word = ""; 
     for (auto x : str)  
     { 
         if (x == ':') 
-        { 
+        {   
+            //cout << "*";
             return word;
             //cout << word << endl; 
             word = ""; 
@@ -240,12 +319,12 @@ int main()
 {
     int n = 10;      // file size
     string arr[n];   // Each one stores one line of file
+
     int i=0;
-
     for(int i=0;i<32;i++)
-        R[i] = i;
+       R[i] = i;
 
-    ////***********************************************
+    ////***********************************************////
 
     std :: string line;
     ifstream file("assembly.txt");
@@ -260,16 +339,20 @@ int main()
 
     for(int i=0 ;i<n ; i++)
     {
-        string temp = arr[i];
+        string temp  = arr[i];
         string label = search_label(temp);
 
-       // cout << label;        
+        //cout << label;        
+        //label = label + ":";  // Shoud not do this ,we need without colon only
+
         search.insert({label,i});
+        //search.insert({"while",4});
     } 
 
-    //   cout << search ["human"];   // Prints in which line it is there
+    //   If input file is "I am a human:"
+    //    search ["human"];   // Prints in which line it is there
 
-    //****************************************************
+    //****************************************************//
 
 
     for (int k=0;k<n;k++)
@@ -279,7 +362,30 @@ int main()
             
         addi_subi_Check( arr[k], "addi" ) ;
         addi_subi_Check( arr[k], "subi" ) ;
-        
+
+       
+        string jumpLabel = jump_Check(arr[k], "j");
+        if( arr[k]!= ""  &&  jump_Check(arr[k], "j") != "fault" )
+        {
+            // jumpLabel = jumpLabel +":";     //should not do
+            // cout << jumpLabel;
+            // cout << search ["while"];       //Shows where while: is located
+            
+            // cout <<search [jumpLabel];
+            k = search [jumpLabel];   //jump_Index;
+
+            continue;
+        }
+
+        string  bne_Label =  bne_Check (arr[k], "bne");
+        if( arr[k]!= ""  &&  bne_Check(arr[k], "bne") != "fault" )
+        {
+            // # Similar to above Jump case
+            k = search [bne_Label];   //jump_Index;
+
+            continue;
+        }
+
     }
 
     PrintAllRegisters(R, 32);
@@ -287,3 +393,20 @@ int main()
     file.close();
     return 0;
 }
+
+
+
+/* Test file
+
+
+add $t0, $t1, $t2 
+add $t3, $t4, $t5 
+j while 
+loop: 
+    addi $r3, $r3, 1 
+while: 
+   add $r0, $r1, $r2 
+bne $r3, $r4, loop 
+   addi $r9, $r9, 10 
+
+*/
