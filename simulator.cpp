@@ -81,6 +81,27 @@ bool PerformEqual (char a,char b, int x,int y)
 }
 
 
+
+bool Performslt (char a,char b, int x,int y)
+{
+    int p,q,r;
+    if(a == 't')
+        p = R[x];
+    else if (a == 'r')
+        p = R[10+x];
+
+    if(b == 't')
+        q = R[y];
+    else if (b == 'r')
+        q = R[10+y];
+
+    if( p < q)
+        return true;
+    else
+        return false;
+}
+
+
 void PerformAddI (char a,char b, int x,int y, int z)
 {
     int p,q,r;
