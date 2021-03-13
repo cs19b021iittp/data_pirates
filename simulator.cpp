@@ -802,7 +802,7 @@ void PrintAllMemory ( int Mem[] , int k )
 int main()
 {
     
-    int n = 10;      // file size
+    int n = 100;      // file size
     string arr[n];   // Each one stores one line of file
 
     // Assigning values to registers
