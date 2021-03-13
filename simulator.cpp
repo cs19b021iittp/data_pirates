@@ -150,6 +150,40 @@ bool PerformSLT (char a,char b, char c,int x,int y, int z)
     return true;
 }
 
+bool PerformBEQZ (char a, int x)
+{
+    int p;
+    if(a == 't')
+        p = R[x];
+    else if (a == 'r')
+        p = R[10+x];
+
+
+    if( p == 0)
+        return true;
+    else
+        return false;
+}
+
+bool PerformBGE (char a,char b, int x,int y)
+{
+    int p,q;
+    if(a == 't')
+        p = R[x];
+    else if (a == 'r')
+        p = R[10+x];
+
+    if(b == 't')
+        q = R[y];
+    else if (b == 'r')
+        q = R[10+y];
+
+    if( p >= q)
+        return true;
+    else
+        return false;
+}
+
 
 bool PerformLI (char a, int x,int y)
 {
@@ -571,18 +605,21 @@ string jump_Check ( string sentence, string word )
     string temp; 
     string example = "fault";
   
+  
     while (s >> temp) 
     {  
         if (temp.compare(word) == 0) 
         {  
             s >> temp;  // This temp will store label i.e, where to jump
             //temp = temp+":";
+        
             return temp;
         }
         else
             return example;
     } 
 }
+
 
 string bne_Check  ( string sentence, string word )
 {
@@ -615,7 +652,110 @@ string bne_Check  ( string sentence, string word )
             if( PerformEqual(a,b,x,y) == true )
                 return wrong; // So that control just goes to next line
             else
-                return temp;   
+                return temp;  // So that control flows through the mentioned label
+            
+        }
+        else
+            return wrong;
+    } 
+}
+
+string beqz_Check ( string sentence, string word )
+{
+    int x,y;
+    char a,b;
+
+    stringstream s(sentence); 
+    string temp; 
+    string wrong = "fault";
+  
+    while (s >> temp) 
+    {  
+        if (temp.compare(word) == 0) 
+        {  
+            s >> temp;  // temp[0] = '$'
+            int p=1;           
+              
+            a = temp[p++];        // storing variable name of 1st register
+            x = temp[p++] - 48;   // storing value name of 1st register
+
+            s >> temp; // This temp will be having our label 
+
+            if( PerformBEQZ(a,x) == false )
+                return wrong; // So that control just goes to next line
+            else
+                return temp;  // So that control flows through the mentioned label
+            
+        }
+        else
+            return wrong;
+    } 
+}
+
+string bnez_Check ( string sentence, string word )
+{
+    int x,y;
+    char a,b;
+
+    stringstream s(sentence); 
+    string temp; 
+    string wrong = "fault";
+  
+    while (s >> temp) 
+    {  
+        if (temp.compare(word) == 0) 
+        {  
+            s >> temp;  // temp[0] = '$'
+            int p=1;           
+              
+            a = temp[p++];        // storing variable name of 1st register
+            x = temp[p++] - 48;   // storing value name of 1st register
+
+            s >> temp; // This temp will be having our label 
+
+            if( PerformBEQZ(a,x) == true )
+                return wrong; // So that control just goes to next line
+            else
+                return temp;  // So that control flows through the mentioned label
+            
+        }
+        else
+            return wrong;
+    } 
+}
+
+string bge_Check  ( string sentence, string word )
+{
+    int x,y;
+    char a,b;
+
+    stringstream s(sentence); 
+    string temp; 
+    string wrong = "fault";
+  
+    while (s >> temp) 
+    {  
+        if (temp.compare(word) == 0) 
+        {  
+            s >> temp;  // temp[0] = '$'
+            int p=1;           
+              
+            a = temp[p++];        // storing variable name of 1st register
+            x = temp[p++] - 48;   // storing value name of 1st register
+
+
+            s >> temp;  // temp[0] = '$'  
+            p=1;           
+              
+            b = temp[p++];        // storing variable name of 2nd register
+            y = temp[p++] - 48;   // storing value name of 2nd register
+
+            s >> temp; // This temp will be having our label 
+
+            if( PerformBGE(a,b,x,y) == false )
+                return wrong; // So that control just goes to next line
+            else
+                return temp;  // So that control flows through the mentioned label
             
         }
         else
@@ -661,6 +801,7 @@ void PrintAllMemory ( int Mem[] , int k )
 
 int main()
 {
+    
     int n = 10;      // file size
     string arr[n];   // Each one stores one line of file
 
@@ -715,8 +856,8 @@ int main()
         // cout << "* ";      // This will print only if a line dont have anything (not even space)
         //                       or in the case of  the last unused remaining lines
 
-        if(arr[k] == "")
-        k++;
+        //while(arr[k] == "")  // Never write this you wont get any output
+        //k++;
 
         add_sub_Check  ( arr[k], "add" ) ;
         add_sub_Check  ( arr[k], "sub" ) ;
@@ -740,17 +881,47 @@ int main()
             // cout << search ["while"];       //Shows where while: is located
             
             // cout <<search [jumpLabel];
+            
             k = search [jumpLabel];   //jump_Index;
-
             continue;
         }
 
         // Checking 'bne'
         string  bne_Label =  bne_Check (arr[k], "bne");
-        if( arr[k]!= ""  &&  bne_Check(arr[k], "bne") != "fault" )
+        if( arr[k]!= ""  &&  bne_Check (arr[k], "bne") != "fault" )
         {
             // # Similar to above Jump case
             k = search [bne_Label];   //jump_Index;
+
+            continue;
+        }
+
+        // Checking 'beqz'
+        string  beqz_Label =  beqz_Check (arr[k], "beqz");
+        if( arr[k]!= ""  &&   beqz_Check (arr[k], "beqz") != "fault" )
+        {
+            // # Similar to above Jump case
+            k = search [beqz_Label];   //jump_Index;
+
+            continue;
+        }
+
+        // Checking 'bnez'
+        string  bnez_Label =  bnez_Check (arr[k], "bnez");
+        if( arr[k]!= ""  &&   bnez_Check (arr[k], "bnez") != "fault" )
+        {
+            // # Similar to above Jump case
+            k = search [bnez_Label];   //jump_Index;
+
+            continue;
+        }
+
+        // Checking 'bge'
+        string  bge_Label =  bge_Check (arr[k], "bge");
+        if( arr[k]!= ""  &&  bge_Check (arr[k], "bge") != "fault" )
+        {
+            // # Similar to above Jump case
+            k = search [bge_Label];   //jump_Index;
 
             continue;
         }
@@ -772,6 +943,7 @@ int main()
   
     -> should follow good pattern or spacing in add ,addi,.....
     -> file should not be empty
+    -> fie shoud have more than 1 ine or instructions
     -> each line should end with space
     -> we have 20 registers at present
     -> If u find any other include here
