@@ -184,6 +184,26 @@ bool PerformBGE (char a,char b, int x,int y)
         return false;
 }
 
+bool PerformBLE (char a,char b, int x,int y)
+{
+    int p,q;
+    if(a == 't')
+        p = R[x];
+    else if (a == 'r')
+        p = R[10+x];
+
+    if(b == 't')
+        q = R[y];
+    else if (b == 'r')
+        q = R[10+y];
+
+    if( p <= q)
+        return true;
+    else
+        return false;
+}
+
+
 
 bool PerformLI (char a, int x,int y)
 {
@@ -288,6 +308,34 @@ void PerformSubI (char a,char b, int x,int y, int z)
         q = R[10+y];
 
     p = q-z;
+    if(a == 't')
+         R[x] = p;
+    else if (a == 'r')
+         R[10+x] = p;
+}
+
+void PerformSLL  (char a,char b, int x,int y, int z)
+{
+    int p,q,r;
+
+    if(a == 't')
+        p = R[x];
+    else if (a == 'r')
+        p = R[10+x];
+
+    if(b == 't')
+        q = R[y];
+    else if (b == 'r')
+        q = R[10+y];
+
+
+    for (int i=0;i<z;i++)
+    {
+        q = q*2;  // Shifting left
+    }
+
+
+    p = q;
     if(a == 't')
          R[x] = p;
     else if (a == 'r')
@@ -599,6 +647,56 @@ bool slt_Check ( string sentence, string word )
     } 
 }
 
+bool sll_Check ( string sentence, string word )
+{
+    int x,y,z;
+    char a,b;
+
+    stringstream s(sentence); 
+    string temp; 
+  
+    while (s >> temp) 
+    {   // Comparing the current word with the word to be searched 
+        if (temp.compare(word) == 0) 
+        {  
+            s >> temp;  // temp[0] = '$'
+            int p=1;           
+              
+            a = temp[p++];        // storing variable name of 1st register
+            x = temp[p++] - 48;   // storing value name of 1st register
+
+
+            s >> temp;  // temp[0] = '$'  
+            p=1;           
+              
+            b = temp[p++];        // storing variable name of 2nd register
+            y = temp[p++] - 48;   // storing value name of 2nd register
+
+
+            s >> temp;  // temp[0] = '$'  
+                      
+
+            string str_temp = temp; 
+            stringstream geek(str_temp); // object from the class stringstream 
+  
+            // The object has integer in string form and now, stream it to the integer int_temp 
+            int int_temp = 0; 
+            geek >> int_temp; 
+  
+            // Now the variable int_temp holds the integer value of the string        
+              
+            z = int_temp;   // storing integer value of 3rd register
+
+            PerformSLL(a,b,x,y,z);
+
+            return true; 
+        }
+           
+            
+    } 
+    return false; 
+}
+
 string jump_Check ( string sentence, string word )
 { 
     stringstream s(sentence); 
@@ -763,6 +861,46 @@ string bge_Check  ( string sentence, string word )
     } 
 }
 
+string ble_Check  ( string sentence, string word )
+{
+    int x,y;
+    char a,b;
+
+    stringstream s(sentence); 
+    string temp; 
+    string wrong = "fault";
+  
+    while (s >> temp) 
+    {  
+        if (temp.compare(word) == 0) 
+        {  
+            s >> temp;  // temp[0] = '$'
+            int p=1;           
+              
+            a = temp[p++];        // storing variable name of 1st register
+            x = temp[p++] - 48;   // storing value name of 1st register
+
+
+            s >> temp;  // temp[0] = '$'  
+            p=1;           
+              
+            b = temp[p++];        // storing variable name of 2nd register
+            y = temp[p++] - 48;   // storing value name of 2nd register
+
+            s >> temp; // This temp will be having our label 
+
+            if( PerformBLE(a,b,x,y) == false )
+                return wrong; // So that control just goes to next line
+            else
+                return temp;  // So that control flows through the mentioned label
+            
+        }
+        else
+            return wrong;
+    } 
+}
+
+
 
 string search_label(string str) 
 { 
@@ -865,11 +1003,12 @@ int main()
         addi_subi_Check( arr[k], "addi" ) ;
         addi_subi_Check( arr[k], "subi" ) ;
 
-        li_Check ( arr[k], "li" );
-        lw_Check ( arr[k], "lw" );
-        sw_Check ( arr[k], "sw" );
+        li_Check ( arr[k], "li" );      // Load immediate
+        lw_Check ( arr[k], "lw" );      // Load word
+        sw_Check ( arr[k], "sw" );      // Store word
 
-        slt_Check( arr[k], "slt");
+        slt_Check( arr[k], "slt");      
+        sll_Check (arr[k], "sll");
 
 
         // Checking 'J'
@@ -925,6 +1064,17 @@ int main()
 
             continue;
         }
+
+        // Checking 'ble'
+        string  ble_Label =  ble_Check (arr[k], "ble");
+        if( arr[k]!= ""  &&  ble_Check (arr[k], "ble") != "fault" )
+        {
+            // # Similar to above Jump case
+            k = search [ble_Label];   //jump_Index;
+
+            continue;
+        }
+
 
     }
 
