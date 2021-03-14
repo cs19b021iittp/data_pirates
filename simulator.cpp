@@ -943,6 +943,45 @@ string ble_Check  ( string sentence, string word )
 }
 
 
+string word_Check ( string sentence, string word )
+{
+    int x,y,count = 0;
+    char a,b;
+
+    stringstream s(sentence); 
+    string temp; 
+    string wrong = "fault";
+  
+    while (s >> temp) 
+    {  
+        if (temp.compare(word) == 0) 
+        {  
+            s >> temp; 
+            while (temp != ";")
+            {             
+                string offset = "";     
+                int k=0;       
+                for( k=0 ; temp[k]!=',' ; k++)
+                {
+                    offset += temp[k];     // collecting integers as a string
+                    //offset[i] = temp[k]; //This method is not working
+                }
+
+                stringstream geek(offset);  
+                geek >> y;            // converting string integers into int
+                 
+                // cout << y << "*";
+                Mem[count] = y;
+                // cout << Mem[count] << "*";
+                count++;
+
+                s >> temp;
+            }
+            
+        }
+
+    } 
+}
 
 string search_label(string str) 
 { 
@@ -988,20 +1027,12 @@ int main()
     // Assigning values to registers
     int i=0;         
     for(int i=0;i<32;i++)
-       R[i] = i;
+       R[i] = 0;
 
     // Creating array of 4KB memory = 4 bytes x ( 1024 length )
     for (int i=0;i<1024;i++)
-        Mem[i] = 2 * i;
-    
-    Mem[0] = 3;
-    Mem[1] = 5;
-    Mem[2] = 1;
-    Mem[3] = 4;
-    Mem[4] = 2;
-    Mem[5] = 6;
-    Mem[6] = 8;
-    Mem[7] = 7;
+        Mem[i] = 0;
+
 
     // Here we can clearly observe that this array holds fixed memory address in all cases
     // cout << Mem[0] << endl <<  &(Mem[0]) << endl << *(&(Mem[0])) << endl;
@@ -1057,8 +1088,11 @@ int main()
         lw_Check ( arr[k], "lw" );      // Load word
         sw_Check ( arr[k], "sw" );      // Store word
 
-        slt_Check( arr[k], "slt");      
-        sll_Check (arr[k], "sll");
+        slt_Check ( arr[k], "slt");      
+        sll_Check ( arr[k], "sll");
+
+        // Loading array elements into memory if you need
+        word_Check ( arr[k], ".word" );
 
 
         // Checking 'J'
@@ -1175,30 +1209,45 @@ bne $r3, $r4, loop
 */
 
 
-/* Test file to check BUBBE SORT
+/* Test file to check BUBBLE SORT
+
+.data
+.word  1, -3, 5, 7, 11, -223, 21, 45, 9, ;  
+.text 
+.globl main 
+main: 
+
+BubbleSort: 
 
 li $t0, 0x10010000       
 li $t1, 0      
 li $t2, 0     
-li $r1, 13 
-loop:  
+li $r1, 8 
+
+OuterLoop:  
     beq $t1, $r1, exit      
     li  $t0, 0x10010000 
     li  $t2, 0   
-    forLoop: 
-        beq $t2, $r1, exitForLoop   
+
+    InnerLoop: 
+
+        beq $t2, $r1, exitInnerLoop   
         lw  $t8, 0($t0)         	
         lw  $t9, 4($t0)         	
-        ble $t8, $t9, update       
-        sw  $t9, 0($t0)         	
-        sw  $t8, 4($t0)
-        update: 
-        addi $t2, $t2, 1                      
-        addi $t0, $t0, 4            
-        j forLoop 
-    exitForLoop: 
-        addi $t1, $t1, 1  
-        j loop 
-exit:   
 
+        ble $t8, $t9, GoAhead       
+        sw  $t9, 0($t0)         	
+        sw  $t8, 4($t0) 
+
+        GoAhead: 
+            addi $t2, $t2, 1                      
+            addi $t0, $t0, 4   
+
+        j InnerLoop 
+
+    exitInnerLoop: 
+        addi $t1, $t1, 1  
+        j OuterLoop 
+        
+exit: 
 */
