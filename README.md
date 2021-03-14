@@ -11,7 +11,7 @@ and 1024 size Memory array of integer type (You can change it in code directly i
    
    Registers R[10],R[11].....R[19] are indicated with r0,r1,r2,...r9
 
-By default the code will display the contents of 20 Registers and 20 Memory values (you can change it in code directly if you are using more vaues).
+By default the code will display the contents of 20 Registers and 20 Memory values (you can change it in code directly if you are using more values).
 
 BubbleSort file (having name -'assembly') is also attached to check its working condition (You can notice the sorted order in Memory array).
         
