@@ -6,7 +6,7 @@ using namespace std;
 
 int R[32];     // Global array of Registers
 int Mem[1024]; // Global array of Memory -> Creating array of 4KB memory = 4 bytes x ( 1024 length )
-int base_address;
+int base_address;  // For lw and sw we need addresses of memory locations, we can get them with this
 
 
 int Hexa_To_Dec_Converter(char num[])
@@ -41,7 +41,8 @@ string Dec_To_Hexa_Converter(int num)
 
 
 void PerformAdd (char a,char b, char c,int x,int y, int z)
-{
+{   
+    // Adds the other 2 register elements and stores in 1st register
     int p,q,r;
     if(a == 't')
         p = R[x];
@@ -68,6 +69,7 @@ void PerformAdd (char a,char b, char c,int x,int y, int z)
 
 void PerformSub (char a,char b,char c, int x,int y,int z)
 {
+    // Subtracts the other 2 register elements and stores in 1st register
     int p,q,r;
     if(a == 't')
         p = R[x];
@@ -150,6 +152,7 @@ bool PerformSLT (char a,char b, char c,int x,int y, int z)
     return true;
 }
 
+
 bool PerformBEQZ (char a, int x)
 {
     int p;
@@ -202,7 +205,6 @@ bool PerformBLE (char a,char b, int x,int y)
     else
         return false;
 }
-
 
 
 bool PerformLI (char a, int x,int y)
@@ -341,6 +343,7 @@ void PerformSLL  (char a,char b, int x,int y, int z)
     else if (a == 'r')
          R[10+x] = p;
 }
+
 
 
 bool add_sub_Check   ( string sentence, string word ) 
@@ -699,6 +702,7 @@ bool sll_Check ( string sentence, string word )
     return false; 
 }
 
+
 string jump_Check ( string sentence, string word )
 { 
     stringstream s(sentence); 
@@ -719,7 +723,6 @@ string jump_Check ( string sentence, string word )
             return example;
     } 
 }
-
 
 string bne_Check  ( string sentence, string word )
 {
@@ -1173,10 +1176,10 @@ int main()
     }
 
     cout << "\n  Register Elements :" << "\n\n";
-    PrintAllRegisters(R, 32);   // Printing 32 registers
+    PrintAllRegisters(R, 20);   // Printing 32 registers
 
     cout << "\n  Memory Elements :" << "\n\n";
-    PrintAllMemory (Mem, 15);   // Printing required number of memory elements upto 1024
+    PrintAllMemory (Mem, 20);   // Printing required number of memory elements upto 1024
 
 
     file.close();
@@ -1187,7 +1190,7 @@ int main()
   
     -> should follow good pattern or spacing in add ,addi,.....
     -> file should not be empty
-    -> fie shoud have more than 1 ine or instructions
+    -> file shoud have more than 1 line or instructions
     -> each line should end with space
     -> we have 20 registers at present
     -> If u find any other include here
