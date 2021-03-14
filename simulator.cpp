@@ -215,8 +215,6 @@ bool PerformLI (char a, int x,int y)
     else if (a == 'r')
         R[10+x] = p;
 
-    base_address = p;
-
     return true;
 
 }
@@ -230,13 +228,15 @@ bool PerformLW (char a,char b, int x,int y,int z)
     else if (b == 'r')
         q = R[10+z];
 
+    
     // Now q will be having address in decimal value
     q = q + y;            // Adding offset
     q = q - base_address; // Removing base address
-    q = q/4 ;             // To get index of Memory array 
-    
-    r = Mem[q];
+    q = q/4 ;             // To get index of Memory array
 
+    r = Mem[q];     // If we use Mem[q] code is not working /No output
+    
+   
     //      int *p = &(Mem[1]);
     //      cout << *(p);         so , p = 0x40d0a4 , *p = 2
     
@@ -487,6 +487,8 @@ bool li_Check ( string sentence, string word )
                 int int_temp = int_temp = Hexa_To_Dec_Converter( hex );
                 
                 y = int_temp;   // storing integer value of 3rd register
+
+                base_address = y; // Assigning given address to  base_address
 
                 PerformLI (a,x,y);
 
@@ -758,6 +760,46 @@ string bne_Check  ( string sentence, string word )
     } 
 }
 
+string beq_Check  ( string sentence, string word )
+{
+    int x,y;
+    char a,b;
+
+    stringstream s(sentence); 
+    string temp; 
+    string wrong = "fault";
+  
+    while (s >> temp) 
+    {  
+        if (temp.compare(word) == 0) 
+        {  
+            s >> temp;  // temp[0] = '$'
+            int p=1;           
+              
+            a = temp[p++];        // storing variable name of 1st register
+            x = temp[p++] - 48;   // storing value name of 1st register
+
+
+            s >> temp;  // temp[0] = '$'  
+            p=1;           
+              
+            b = temp[p++];        // storing variable name of 2nd register
+            y = temp[p++] - 48;   // storing value name of 2nd register
+
+            s >> temp; // This temp will be having our label 
+
+            if( PerformEqual(a,b,x,y) == false )
+                return wrong; // So that control just goes to next line
+            else
+                return temp;  // So that control flows through the mentioned label
+            
+        }
+        else
+            return wrong;
+    } 
+}
+
+
 string beqz_Check ( string sentence, string word )
 {
     int x,y;
@@ -951,7 +993,15 @@ int main()
     // Creating array of 4KB memory = 4 bytes x ( 1024 length )
     for (int i=0;i<1024;i++)
         Mem[i] = 2 * i;
-   
+    
+    Mem[0] = 3;
+    Mem[1] = 5;
+    Mem[2] = 1;
+    Mem[3] = 4;
+    Mem[4] = 2;
+    Mem[5] = 6;
+    Mem[6] = 8;
+    Mem[7] = 7;
 
     // Here we can clearly observe that this array holds fixed memory address in all cases
     // cout << Mem[0] << endl <<  &(Mem[0]) << endl << *(&(Mem[0])) << endl;
@@ -1035,6 +1085,16 @@ int main()
             continue;
         }
 
+        // Checking 'beq'
+        string  beq_Label =  beq_Check (arr[k], "beq");
+        if( arr[k]!= ""  &&  beq_Check (arr[k], "beq") != "fault" )
+        {
+            // # Similar to above Jump case
+            k = search [beq_Label];   //jump_Index;
+
+            continue;
+        }
+
         // Checking 'beqz'
         string  beqz_Label =  beqz_Check (arr[k], "beqz");
         if( arr[k]!= ""  &&   beqz_Check (arr[k], "beqz") != "fault" )
@@ -1111,5 +1171,34 @@ while:
    add $r0, $r1, $r2 
 bne $r3, $r4, loop 
    addi $r9, $r9, 10 
+
+*/
+
+
+/* Test file to check BUBBE SORT
+
+li $t0, 0x10010000       
+li $t1, 0      
+li $t2, 0     
+li $r1, 13 
+loop:  
+    beq $t1, $r1, exit      
+    li  $t0, 0x10010000 
+    li  $t2, 0   
+    forLoop: 
+        beq $t2, $r1, exitForLoop   
+        lw  $t8, 0($t0)         	
+        lw  $t9, 4($t0)         	
+        ble $t8, $t9, update       
+        sw  $t9, 0($t0)         	
+        sw  $t8, 4($t0)
+        update: 
+        addi $t2, $t2, 1                      
+        addi $t0, $t0, 4            
+        j forLoop 
+    exitForLoop: 
+        addi $t1, $t1, 1  
+        j loop 
+exit:   
 
 */
