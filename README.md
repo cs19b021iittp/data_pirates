@@ -1,12 +1,14 @@
 # CO PROJECT
 
 This is a simple C++ file which supports assembly language written with following MIPS instructions (same syntax of those):
+
     ( add,addi,sub,subi,j,bne,slt,li,lw,sw,sll,beq,beqz,bnez,bge,ble ) 
         
 We have used 20 Register variabes of integer type (Fixed as of now) assuming that we may require some other kind of stuff in further phases
 and 1024 size Memory array of integer type (You can change it in code directly if you want to increase)
 
    Registers R[0],R[1].......R[9]  are indicated with t0,t1,t2,...t9
+   
    Registers R[10],R[11].....R[19] are indicated with r0,r1,r2,...r9
 
 By default the code will display the contents of 20 Registers and 20 Memory values (you can change it in code directly if you are using more vaues).
