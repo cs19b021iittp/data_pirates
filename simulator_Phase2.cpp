@@ -31,7 +31,7 @@ bool Check_any ( string sentence )
   
     s >> temp;
 
-    if ( temp == "add" || temp == "sub" || temp == "addi" || temp == "subi" ) 
+    if ( temp == "add" || temp == "sub" || temp == "addi" || temp == "subi" || temp == "lw" || temp == "sw" ) 
       return true;                       
 
     return false; 
@@ -91,26 +91,70 @@ bool Dependency ( string line1, string line2 )
     l1 >> temp1;
     l2 >> temp2;
 
-    // Storing registers in line1
+    string inst1 = temp1;
+    string inst2 = temp2;
+
+    // Storing registers of line 1
+
     l1 >> temp1;            // temp[0] = '$'                      
     Reg11 = temp1[1] + temp1[2]; //storing Register name of 1st register
 
-    l1 >> temp1;             // temp[0] = '$'               
-    Reg12 = temp1[1] + temp1[2]; //storing Register name of 2nd register
+    if( inst1 == "lw" || inst1 == "sw")
+    {
+        l1 >> temp1;            // temp = 0($t2)  
 
-    l1 >> temp1;             // temp[0] = '$'               
-    Reg13 = temp1[1] + temp1[2]; //storing Register name of 3rd register
+        int i=0;      
+        while ( temp1[i]!='$' )
+          i++;
+                     
+        Reg12 = temp1[i+1] + temp1[i+2]; //storing Register name of 1st register
+    }
 
-    // Storing registers in line2
+    else
+    {
+        l1 >> temp1;             // temp[0] = '$'               
+        Reg12 = temp1[1] + temp1[2]; //storing Register name of 2nd register
+
+        l1 >> temp1;             // temp[0] = '$'               
+        Reg13 = temp1[1] + temp1[2]; //storing Register name of 3rd register
+
+    }
+
+    // Storing registers of line 2
+
     l2 >> temp2;             // temp[0] = '$'                      
     Reg21 = temp2[1] + temp2[2]; //storing Register name of 1st register
 
-    l2 >> temp2;             // temp[0] = '$'               
-    Reg22 = temp2[1] + temp2[2]; //storing Register name of 2nd register
 
-    l2 >> temp2;             // temp[0] = '$'               
-    Reg23 = temp2[1] + temp2[2]; //storing Register name of 3rd register
-            
+    if( inst2 == "lw" || inst2 == "sw")
+    {
+        l2 >> temp2;            // temp = 0($t2)  
+
+        int i=0;      
+        while ( temp2[i]!='$' )
+          i++;
+                     
+        Reg22 = temp2[i+1] + temp2[i+2]; //storing Register name of 1st register
+    }
+
+    else
+    {
+        l2 >> temp2;             // temp[0] = '$'               
+        Reg22 = temp2[1] + temp2[2]; //storing Register name of 2nd register
+
+        l2 >> temp2;             // temp[0] = '$'               
+        Reg23 = temp2[1] + temp2[2]; //storing Register name of 3rd register
+    }
+   
+    // Checking dependency
+    if ( inst1 == "lw" && inst2 == "lw")
+    {
+        if (Reg11 == Reg22)
+            return true;
+        else
+            return false;
+    }
+   
 
     if(Reg11 == Reg22 || Reg11==Reg23)
       return true;
