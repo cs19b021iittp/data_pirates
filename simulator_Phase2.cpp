@@ -37,7 +37,7 @@ bool Check_any ( string sentence )
       return true;
     if ( temp == "j" || temp == "bne" ) 
       return true;
-       
+
     return false; 
 }
 
@@ -98,7 +98,7 @@ bool Dependency ( string line1, string line2 )
     string inst1 = temp1;
     string inst2 = temp2;
 
-    // Storing registers of line 1
+    // Storing registers of line 1 --------------------------------------------------------
 
     l1 >> temp1;            // temp[0] = '$'                      
     Reg11 = temp1[1] + temp1[2]; //storing Register name of 1st register
@@ -116,15 +116,32 @@ bool Dependency ( string line1, string line2 )
 
     else
     {
-        l1 >> temp1;             // temp[0] = '$'               
-        Reg12 = temp1[1] + temp1[2]; //storing Register name of 2nd register
+        if (inst1 == "li")
+        {
+            l1 >> temp1;            // temp = integer value  
+            Reg12 = temp1;
+        }
 
-        l1 >> temp1;             // temp[0] = '$'               
-        Reg13 = temp1[1] + temp1[2]; //storing Register name of 3rd register
+        else if (inst1 == "addi" || inst1 == "subi")
+        {
+            l1 >> temp1;             // temp[0] = '$'               
+            Reg12 = temp1[1] + temp1[2]; //storing Register name of 2nd register
 
+            l1 >> temp1;            // temp = integer value  
+            Reg13 = temp1;
+        }
+
+        else // add, sub
+        {
+            l1 >> temp1;             // temp[0] = '$'               
+            Reg12 = temp1[1] + temp1[2]; //storing Register name of 2nd register
+
+            l1 >> temp1;             // temp[0] = '$'               
+            Reg13 = temp1[1] + temp1[2]; //storing Register name of 3rd register
+        }
     }
 
-    // Storing registers of line 2
+    // Storing registers of line 2 -----------------------------------------------------------
 
     l2 >> temp2;             // temp[0] = '$'                      
     Reg21 = temp2[1] + temp2[2]; //storing Register name of 1st register
@@ -143,25 +160,38 @@ bool Dependency ( string line1, string line2 )
 
     else
     {
-        l2 >> temp2;             // temp[0] = '$'               
-        Reg22 = temp2[1] + temp2[2]; //storing Register name of 2nd register
+        if (inst2 == "li")
+        {
+            l2 >> temp2;            // temp = integer value  
+            Reg22 = temp2;
+        }
 
-        l2 >> temp2;             // temp[0] = '$'               
-        Reg23 = temp2[1] + temp2[2]; //storing Register name of 3rd register
+        else if (inst2 == "addi" || inst2 == "subi")
+        {
+            l2 >> temp2;             // temp[0] = '$'               
+            Reg22 = temp2[1] + temp2[2]; //storing Register name of 2nd register
+
+            l2 >> temp2;            // temp = integer value  
+            Reg23 = temp2;
+        }
+
+        else // add, sub
+        {
+            l2 >> temp2;             // temp[0] = '$'               
+            Reg22 = temp2[1] + temp2[2]; //storing Register name of 2nd register
+
+            l2 >> temp2;             // temp[0] = '$'               
+            Reg23 = temp2[1] + temp2[2]; //storing Register name of 3rd register
+        }
+        
     }
    
-    // Checking dependency
-
-    // if ( inst1 == "lw" && inst2 == "lw")
-    // {
-    //     if (Reg11 == Reg22)
-    //         return true;
-    //     else
-    //         return false;
-    // }  // THIS CASE AND OTHER "lw" CASES WILL BE COVERED AUTOMATICALLY BY DOWN CONDITION
+    // -------------------CHECKING DEPENDENCY ------------------------------
    
 
-    // Exceptions for "sw"
+    // All "sw" cases
+    // There is a reason for writing "sw" first (to remove all exceptions)
+    
     if ( inst1 == "sw" || inst2 == "sw" )
     {
         if ( inst1 == "sw" && inst2 == "sw" )   // Indepensent of Dependency
@@ -181,10 +211,10 @@ bool Dependency ( string line1, string line2 )
         
     }
 
-    // Exceptions for "lw"
+    // All "lw" cases
     if ( inst1 == "lw" || inst2 == "lw" )
     {
-        if ( inst1 == "lw" && inst2 == "lw" )   // Indepensent of Dependency
+        if ( inst1 == "lw" && inst2 == "lw" )   
         {
             if( Reg11 == Reg22 )
               return true;
@@ -192,7 +222,7 @@ bool Dependency ( string line1, string line2 )
               return false;
         }
 
-        if ( inst1 == "lw" )     // Indepensent of Dependency
+        if ( inst1 == "lw" )    
         {
             if(Reg11 == Reg22 || Reg11 == Reg23 )
                 return true;
@@ -211,7 +241,31 @@ bool Dependency ( string line1, string line2 )
         
     }
 
+    // All " li " cases
+    if ( inst1 == "li" || inst2 == "li" )
+    {
+        if ( inst1 == "li" && inst2 == "li" )   // Indepensent of Dependency
+            return false;
 
+        if ( inst1 == "li" )     
+        {
+            // if(inst2 == "sw")   // Actually this case can never occur as all "sw" cases appeared above
+            // {
+            //     if ( Reg11 == Reg21 || Reg11 == Reg22 )
+            //         return true;
+            //     else
+            //         return false;
+            // }
+
+            if ( Reg11 == Reg22 || Reg11 == Reg23 )
+                return true;
+            else
+                return false;
+        }
+
+        if ( inst2 == "li" )   // Indepensent of Dependency
+            return false;
+    }
 
 
     // For all combinations of add,addi,sub,subi
