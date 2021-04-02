@@ -31,9 +31,13 @@ bool Check_any ( string sentence )
   
     s >> temp;
 
-    if ( temp == "add" || temp == "sub" || temp == "addi" || temp == "subi" || temp == "lw" || temp == "sw" ) 
+    if ( temp == "add" || temp == "addi" || temp == "sub" || temp == "subi" ) 
       return true;                       
-
+    if ( temp == "li" || temp == "lw" || temp == "sw" )
+      return true;
+    if ( temp == "j" || temp == "bne" ) 
+      return true;
+       
     return false; 
 }
 
@@ -147,15 +151,70 @@ bool Dependency ( string line1, string line2 )
     }
    
     // Checking dependency
-    if ( inst1 == "lw" && inst2 == "lw")
-    {
-        if (Reg11 == Reg22)
-            return true;
-        else
-            return false;
-    }
+
+    // if ( inst1 == "lw" && inst2 == "lw")
+    // {
+    //     if (Reg11 == Reg22)
+    //         return true;
+    //     else
+    //         return false;
+    // }  // THIS CASE AND OTHER "lw" CASES WILL BE COVERED AUTOMATICALLY BY DOWN CONDITION
    
 
+    // Exceptions for "sw"
+    if ( inst1 == "sw" || inst2 == "sw" )
+    {
+        if ( inst1 == "sw" && inst2 == "sw" )   // Indepensent of Dependency
+           return false;
+
+        if ( inst1 == "sw" )     // Indepensent of Dependency
+            return false;
+
+        if ( inst2 == "sw" )   
+        {
+            if(Reg11 == Reg21 || Reg11 == Reg22 )
+                return true;
+
+            else
+                return false;
+        }
+        
+    }
+
+    // Exceptions for "lw"
+    if ( inst1 == "lw" || inst2 == "lw" )
+    {
+        if ( inst1 == "lw" && inst2 == "lw" )   // Indepensent of Dependency
+        {
+            if( Reg11 == Reg22 )
+              return true;
+            else
+              return false;
+        }
+
+        if ( inst1 == "lw" )     // Indepensent of Dependency
+        {
+            if(Reg11 == Reg22 || Reg11 == Reg23 )
+                return true;
+            else
+                return false;
+        }
+
+        if ( inst2 == "lw" )   
+        {
+            if(Reg11 == Reg22 )
+                return true;
+
+            else
+                return false;
+        }
+        
+    }
+
+
+
+
+    // For all combinations of add,addi,sub,subi
     if(Reg11 == Reg22 || Reg11==Reg23)
       return true;
 
