@@ -7,7 +7,7 @@ using namespace std;
 int R[32];     // Global array of Registers
 int Mem[1024]; // Global array of Memory -> Creating array of 4KB memory = 4 bytes x ( 1024 length )
 int base_address;  // For lw and sw we need addresses of memory locations, we can get them with this
-int cycle = 0;
+int cycle=0;
 
 
 bool Check ( string sentence, string word ) 
