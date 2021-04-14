@@ -1,5 +1,7 @@
 # CO PROJECT
 
+# PHASE 1 ( Only printing Register and Memory Elements)
+
 This is a simple C++ file which supports assembly language written with following MIPS instructions (same syntax of those):
 
     ( add,addi,sub,subi,j,bne,slt,li,lw,sw,sll,beq,beqz,bnez,bge,ble ) 
@@ -30,4 +32,10 @@ TO AVOID ANY ERRORS(For our code) FOLLOW THESE CONDITIONS :
   
  As of now we haven't applied any GUI, single step execution....
  
- ********* Thats it SIR ********
+ 
+ 
+ #  PHASE 2 ( PIPELINING - Printing Number of Cycles and Stalls )
+ 
+ 
+ 
+ 
