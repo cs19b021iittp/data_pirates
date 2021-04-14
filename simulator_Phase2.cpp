@@ -7,7 +7,7 @@ using namespace std;
 int R[32];     // Global array of Registers
 int Mem[1024]; // Global array of Memory -> Creating array of 4KB memory = 4 bytes x ( 1024 length )
 int base_address;  // For lw and sw we need addresses of memory locations, we can get them with this
-int cycle=0;
+int cycle = 0;
 
 
 bool Check ( string sentence, string word ) 
@@ -39,6 +39,19 @@ bool Check_any ( string sentence )
       return true;
 
     return false; 
+}
+
+bool Check_label ( string sentence )
+{
+    stringstream s(sentence); 
+    string temp; 
+    s >> temp;   /// Holde label
+
+    if ( temp[temp.length()-1] == ':' )
+        return true;
+    else
+        return false;    
+    
 }
 
 string Get_Reg ( string sentence, string word, int num )
@@ -122,12 +135,24 @@ bool Dependency ( string line1, string line2 )
             Reg12 = temp1;
         }
 
-        else if (inst1 == "addi" || inst1 == "subi")
+        else if ( inst1 == "addi" || inst1 == "subi" )
         {
             l1 >> temp1;             // temp[0] = '$'               
             Reg12 = temp1[1] + temp1[2]; //storing Register name of 2nd register
 
             l1 >> temp1;            // temp = integer value  
+            Reg13 = temp1;
+        }
+
+        else if ( inst1 == "bne" || inst1 == "bne" )
+        {
+            l1 >> temp1;             // temp[0] = '$'               
+            Reg11 = temp1[1] + temp1[2]; //storing Register name of 1st register
+
+            l1 >> temp1;             // temp[0] = '$'               
+            Reg12 = temp1[1] + temp1[2]; //storing Register name of 2nd register
+
+            l1 >> temp1;            // label
             Reg13 = temp1;
         }
 
@@ -141,8 +166,7 @@ bool Dependency ( string line1, string line2 )
         }
     }
 
-    // Storing registers of line 2 -----------------------------------------------------------
-
+    // -----------Storing registers of line 2 ----------------------------------------------------------
     l2 >> temp2;             // temp[0] = '$'                      
     Reg21 = temp2[1] + temp2[2]; //storing Register name of 1st register
 
@@ -175,6 +199,18 @@ bool Dependency ( string line1, string line2 )
             Reg23 = temp2;
         }
 
+         else if ( inst2 == "bne" || inst2 == "bne" )
+        {
+            l2 >> temp2;             // temp[0] = '$'               
+            Reg21 = temp2[1] + temp2[2]; //storing Register name of 1st register
+
+            l2 >> temp2;             // temp[0] = '$'               
+            Reg22 = temp2[1] + temp2[2]; //storing Register name of 2nd register
+
+            l2 >> temp2;            // label
+            Reg23 = temp2;
+        }
+
         else // add, sub
         {
             l2 >> temp2;             // temp[0] = '$'               
@@ -186,8 +222,48 @@ bool Dependency ( string line1, string line2 )
         
     }
    
-    // -------------------CHECKING DEPENDENCY ------------------------------
-   
+    // ------------------- CHECKING DEPENDENCY ------------------------------
+    
+    // if ( Check_label(line1) )
+
+    // All "j" cases 
+    if (inst1 == "j" || inst2 == "j")
+    {
+       // if ( inst1 == "j"  )    // this case never occurs
+       //    return true;
+
+        if ( inst2 == "j" )   
+            return false;
+    }
+
+    // All "bne" cases
+    if (inst1 == "bne" || inst2 == "bne")
+    {
+        if ( inst1 == "bne"  )  
+        {
+            return false;      
+        }
+
+        if ( inst2 == "bne" )   
+        {
+            if( inst1 == "add" || inst1 == "addi" || inst1 == "sub" || inst1 == "subi" || inst1 == "lw" || inst1 == "li" )
+            {
+                if(Reg11 == Reg21 || Reg11 == Reg22 )
+                  return true;
+
+                else
+                  return false;
+            }
+
+            else if ( inst1 == "sw" )
+            {
+                return false;
+            }
+
+            // No need to check inst1 == "j" , it cant be possible
+        }
+
+    }
 
     // All "sw" cases
     // There is a reason for writing "sw" first (to remove all exceptions)
@@ -985,7 +1061,7 @@ string jump_Check ( string sentence, string word )
         if (temp.compare(word) == 0) 
         {  
             s >> temp;  // This temp will store label i.e, where to jump
-            //temp = temp+":";
+            //temp = temp+":"; This is not required, we need only label
         
             return temp;
         }
@@ -1021,7 +1097,7 @@ string bne_Check  ( string sentence, string word )
             y = temp[p++] - 48;   // storing value name of 2nd register
 
             s >> temp; // This temp will be having our label 
-
+            
             if( PerformEqual(a,b,x,y) == true )
                 return wrong; // So that control just goes to next line
             else
@@ -1290,13 +1366,164 @@ void PrintAllMemory ( int Mem[] , int k )
         cout << " Mem[" << i << "] = " << Mem[i] << endl;
 }
 
+int UPDATE_REGISTERS ( int k )
+{    
+    int n = 100;      // file size
+    string arr[n];   // Each one stores one line of file
+
+    ////********************* F I L E *************************//// 
+
+    int i=0;
+
+    std :: string line;
+    ifstream file("assembly.txt");
+
+    if(!file.is_open())
+        cout << "error" << endl;
+
+    while (getline(file,line))
+        arr[i++] = line;
+
+    ////********************** M A P ********************////
+
+    map <string,int> search;
+
+    for(int i=0 ;i < n ; i++)
+    {
+
+        stringstream s(arr[i]); 
+        string temp; 
+  
+        s >> temp;
+        if ( temp [temp.length()-1] == ':')
+        {
+            string line  = arr[i];
+            string label = search_label(line);
+
+            //cout << label;        
+            //label = label + ":";  // Shoud not do this ,we need without colon only
+
+            search.insert({label,i});
+            //search.insert({"while",4});
+        }     
+    } 
+
+    //   If input file is "I am a human:"
+    //    search ["human"];   // Prints in which line it is there
+
+    //****************************************************//
+
+
+
+
+
+        // if(arr[k] == "")
+        // cout << "* ";      // This will print only if a line dont have anything (not even space)
+        //                       or in the case of  the last unused remaining lines
+
+        //while(arr[k] == "")  // Never write this you wont get any output
+        //k++;
+
+
+        add_sub_Check  ( arr[k], "add" ) ;
+        add_sub_Check  ( arr[k], "sub" ) ;
+            
+        addi_subi_Check( arr[k], "addi" ) ;
+        addi_subi_Check( arr[k], "subi" ) ;
+
+        li_Check ( arr[k], "li" );      // Load immediate
+        lw_Check ( arr[k], "lw" );      // Load word
+        sw_Check ( arr[k], "sw" );      // Store word
+
+        slt_Check ( arr[k], "slt");      
+        sll_Check ( arr[k], "sll");
+
+        // Loading array elements into memory if you need
+        word_Check ( arr[k], ".word" );
+
+
+        // Checking 'J' This is working perfectly
+        string jumpLabel = jump_Check(arr[k], "j");   
+        if( arr[k]!= ""  &&  jump_Check(arr[k], "j") != "fault" )
+        {
+            // jumpLabel = jumpLabel +":";     //should not do
+            // cout << jumpLabel;
+            // cout << search ["while"];       //Shows where while: is located
+            
+            k = search [jumpLabel];   //jump_Index;
+    
+        }
+
+        // If we write this proper o/p is not coming so I removed and applied in main function itself
+
+        // Checking 'bne'
+        // string  bne_Label =  bne_Check (arr[k], "bne");
+        // if( arr[k]!= ""  &&  bne_Check (arr[k], "bne") != "fault" )
+        // {
+        //     // # Similar to above Jump case
+        //     k = search [bne_Label];   //jump_Index;
+        // }
+
+        // Checking 'beq'
+        string  beq_Label =  beq_Check (arr[k], "beq");
+        if( arr[k]!= ""  &&  beq_Check (arr[k], "beq") != "fault" )
+        {
+            // # Similar to above Jump case
+            k = search [beq_Label];   //jump_Index;
+
+        }
+
+        // Checking 'beqz'
+        string  beqz_Label =  beqz_Check (arr[k], "beqz");
+        if( arr[k]!= ""  &&   beqz_Check (arr[k], "beqz") != "fault" )
+        {
+            // # Similar to above Jump case
+            k = search [beqz_Label];   //jump_Index;
+
+        }
+
+        // Checking 'bnez'
+        string  bnez_Label =  bnez_Check (arr[k], "bnez");
+        if( arr[k]!= ""  &&   bnez_Check (arr[k], "bnez") != "fault" )
+        {
+            // # Similar to above Jump case
+            k = search [bnez_Label];   //jump_Index;
+
+        }
+
+        // Checking 'bge'
+        string  bge_Label =  bge_Check (arr[k], "bge");
+        if( arr[k]!= ""  &&  bge_Check (arr[k], "bge") != "fault" )
+        {
+            // # Similar to above Jump case
+            k = search [bge_Label];   //jump_Index;
+
+        }
+
+        // Checking 'ble'
+        string  ble_Label =  ble_Check (arr[k], "ble");
+        if( arr[k]!= ""  &&  ble_Check (arr[k], "ble") != "fault" )
+        {
+            // # Similar to above Jump case
+            k = search [ble_Label];   //jump_Index;
+
+        }
+
+
+        return k;
+
+
+}
+
+// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 int main()
 {
+    cout<< "**"<<endl;
     
     int n = 100;      // file size
     string arr[n];   // Each one stores one line of file
-    int start = 0;
+    
 
     // Assigning values to registers
     int i=0;         
@@ -1312,7 +1539,7 @@ int main()
     // cout << Mem[0] << endl <<  &(Mem[0]) << endl << *(&(Mem[0])) << endl;
     // cout << Memory[1] << endl <<  &(Memory[1]) << endl;
 
-    ////***********************************************//// 
+    ////********************* F I L E *************************//// 
 
     std :: string line;
     ifstream file("assembly.txt");
@@ -1323,18 +1550,28 @@ int main()
     while (getline(file,line))
         arr[i++] = line;
 
+    ////********************** M A P ********************////
+
     map <string,int> search;
 
     for(int i=0 ;i<n ; i++)
     {
-        string temp  = arr[i];
-        string label = search_label(temp);
 
-        //cout << label;        
-        //label = label + ":";  // Shoud not do this ,we need without colon only
+        stringstream s(arr[i]); 
+        string temp; 
+  
+        s >> temp;
+        if ( temp [temp.length()-1] == ':')
+        {
+            string line  = arr[i];
+            string label = search_label(line);
 
-        search.insert({label,i});
-        //search.insert({"while",4});
+            //cout << label;        
+            //label = label + ":";  // Shoud not do this ,we need without colon only
+
+            search.insert({label,i});
+            //search.insert({"while",4});
+        }     
     } 
 
     //   If input file is "I am a human:"
@@ -1377,9 +1614,8 @@ int main()
             // cout << jumpLabel;
             // cout << search ["while"];       //Shows where while: is located
             
-            // cout <<search [jumpLabel];
-            
             k = search [jumpLabel];   //jump_Index;
+            
             continue;
         }
 
@@ -1446,90 +1682,238 @@ int main()
 
     }
 
-    // cout << "\n  Register Elements :" << "\n\n";
-    // PrintAllRegisters(R, 20);   // Printing 32 registers
+    //cout << "\n  Register Elements :" << "\n\n";
+    //PrintAllRegisters(R, 20);   // Printing 32 registers
+    //cout << endl;
 
-    // cout << "\n  Memory Elements :" << "\n\n";
-    // PrintAllMemory (Mem, 20);   // Printing required number of memory elements upto 1024
-
+    //cout << "\n  Memory Elements :" << "\n\n";
+    //PrintAllMemory (Mem, 20);   // Printing required number of memory elements upto 1024
+    //cout << endl;
     
+
+    // ---------------------------_______________________----------------------------------
+    // ---------------------------| P I P E L I N I N G |------------------------------------
+    // -------------------------- |_____________________|------------------------------------------
+
+
+
+    // ********************** ( F O R W A R D I N G ) ****************************
+
+     // Assigning values to registers
+    for(int i=0;i<32;i++)
+       R[i] = 0;
+
+    // Creating array of 4KB memory = 4 bytes x ( 1024 length )
+    for (int i=0;i<1024;i++)
+        Mem[i] = 0;
+
     for (int k=0;k<n;k++)
     {  
-
-        if( Check_any ( arr[k] )  )
+        
+        if ( Check_any ( arr[k] )  )
         {
-            if(k == 0)
+
+            if (k == 0)
              cycle+=5;
+               
             
-            else if (k == 1)
+            else
             {
-               if( Check_any ( arr[k-1] )  )
+                if ( lw_Check(arr[k], "lw") )
+                    cycle+=2;
+
+                else
+                    cycle++;
+            }   
+            
+            // This step is really important to update registers at each line
+
+            UPDATE_REGISTERS (k);       
+
+            //Just To change the control flow to required line
+
+            if( Check(arr[k] ,"j") )
+            {
+                string jumpLabel = jump_Check(arr[k], "j"); // contains label or "fault"
+                
+                if ( jump_Check(arr[k], "j") != "fault" )
+                { 
+                    // cycle++;  // for its own 5 consecutive stages without any stalls
+                    // cycle+=1;    // one stall for next instruction to get in IF stage 
+                    k = search [jumpLabel] ;   //jump_Index;
+                    // continue;                 // This increments k again in for loop
+                    // cout <<" " << k << " ";
+                }
+               
+            }
+
+            if( Check(arr[k] ,"bne") )
+            {
+                string  bne_Label =  bne_Check (arr[k], "bne"); // contains label or "fault"
+                
+                if ( bne_Check (arr[k], "bne") != "fault" )
+                { 
+                    // cycle++;  // for its own 5 consecutive stages without any stalls
+                    // cycle+=1;    // one stall for next instruction to get in IF stage 
+                    k = search [bne_Label] ;   //jump_Index;
+                    // continue;                 // This increments k again in for loop
+                    // cout <<" " << k << " ";
+                }
+               
+            }
+            
+            cout << cycle << ",";
+
+        }         
+        
+    }    
+
+    cout << " Total Number of Cycles ( Forwarding ) : " << cycle << endl ;
+
+    
+    // **********************  ( N O N - F O R W A R D I N G )  *******************************************
+
+     // Assigning values to registers         
+    for(int i=0;i<32;i++)
+       R[i] = 0;
+
+    // Creating array of 4KB memory = 4 bytes x ( 1024 length )
+    for (int i=0;i<1024;i++)
+        Mem[i] = 0;
+
+    cycle = 0;
+
+    for (int k=0;k<n;k++)
+    {  
+        if ( Check_any ( arr[k] )  )
+        {
+           
+            if(k == 0)
+              cycle+=5;
+            
+            else if (k == 1)   
+            {
+               if ( Check_label( arr[k-1]) ) 
+               {
+                   cycle++;
+               }
+
+               else if( Check_any ( arr[k-1] )  )
                {
                    if( Dependency(arr[k-1],arr[k]) )
                      cycle+=3;
 
                    else
-                     cycle+=1;  
-               }
-                 
+                     cycle++;  
+               }                 
             }
 
             else
-            {
-                if( Check_any ( arr[k-1] )  )
+            {   
+                // Every line should have either label or instruction
+                if( Check_label (arr[k-1]) )
                 {
-                   if( Dependency(arr[k-1],arr[k]) )
-                     cycle+=3;
-                    
-                    else if( Check_any ( arr[k-2] ) )  
-                    {
-                        if( Dependency(arr[k-2],arr[k]) )
-                         cycle+=2;  
-
-                        else
-                          cycle+=1;  
-                    }  
-
-                    else 
-                       cycle++;
+                    cycle+=1;
                 }
 
-                else if( Check_any ( arr[k-2] ) )  
+                else if( Check_any ( arr[k-1] )  )
                 {
-                    if( Dependency(arr[k-2],arr[k]) )
-                     cycle+=2;  
+                    if( Dependency(arr[k-1],arr[k]) )
+                     cycle+=3;
+                    
+                    else  
+                    {
+                        if ( Check_label(arr[k-2]) )
+                        {
+                            cycle+=1;
+                        }
+                        
+                        else if( Check_any ( arr[k-2] ) ) 
+                        {
+                            if( Dependency(arr[k-2],arr[k]) )
+                              cycle+=2;  
 
-                    else
-                      cycle++;  
-                }  
+                            else
+                              cycle+=1; 
+                        }   
+                    } 
 
-                else 
-                   cycle++;
+                }
+
+                // else if( Check_any ( arr[k-2] ) )  
+                // {
+                //     if( Dependency(arr[k-2],arr[k]) )
+                //      cycle+=2;  
+                
+                //     else
+                //       cycle++;  
+                // }  
+
+                // else 
+                //    cycle++;
                  
             }
 
+            UPDATE_REGISTERS (k);
+
+
+            // To change the control flow to required line
+
+            if( Check(arr[k] ,"j") )
+            {
+                string jumpLabel = jump_Check(arr[k], "j"); // contains label or "fault"
+                
+                if ( jump_Check(arr[k], "j") != "fault" )
+                { 
+                    // cycle++;  // for its own 5 consecutive stages without any stalls
+                    cycle+=1;    // one stall for next instruction to get in IF stage 
+                    k = search [jumpLabel] ;   //jump_Index;
+                    // continue;                 // This increments k again in for loop
+                    // cout <<" " << k << " ";
+                }
+               
+            }
+
+            if( Check(arr[k] ,"bne") )
+            {
+                string  bne_Label =  bne_Check (arr[k], "bne"); // contains label or "fault"
+                
+                if ( bne_Check (arr[k], "bne") != "fault" )
+                { 
+                    // cycle++;  // for its own 5 consecutive stages without any stalls
+                    cycle+=1;    // one stall for next instruction to get in IF stage 
+                    k = search [bne_Label] ;   //jump_Index;
+                    // continue;                 // This increments k again in for loop
+                    // cout <<" " << k << " ";
+                }
+               
+            }
+            
+            cout << cycle << ",";
+
         }         
-
-
         
-
     }
 
-    cout << "Total Number of Cycles : " << cycle << endl ;
+    cout << " Total Number of Cycles ( Non Forwarding ) : " << cycle << endl ;
 
 
     file.close();
     return 0;
+
 }
 
 /*  EXCEPTIONS 
-  
-    -> should follow good pattern or spacing in add ,addi,.....
+
+    -> If You feel you are not getting any output just save file again(any random comment) and run
+    -> 1st line should definately have any instruction of add/addi/sub/subi/j/bne/li/lw/sw (cant be label)
+    -> Dont leave any line empty (You can just have empty line before any LABEL)
+    -> Dont keep any label named "fault" ,its already reserved 
+    -> should follow good pattern or spacing in add ,addi,.....as mentioned in README
     -> file should not be empty
-    -> file shoud have more than 1 line or instructions
     -> each line should end with space
     -> we have 20 registers at present
-    -> If u find any other include here
+    -> If u feel like you fount out any other include here :)
 */
 
 
