@@ -1,6 +1,6 @@
 # CO PROJECT
 
-# PHASE 1 ( Only printing Register and Memory Elements)
+# PHASE 1 ( Printing Register and Memory Elements)
 
 This is a simple C++ file which supports assembly language written with following MIPS instructions (same syntax of those):
 
@@ -34,7 +34,7 @@ TO AVOID ANY ERRORS (For our code) FOLLOW THESE CONDITIONS :
  
  
  
- #  PHASE 2 ( PIPELINING - Printing Number of Cycles and Stalls )
+ #  PHASE 2 ( Adding PIPELINING - Printing Number of Cycles and Stalls )
  
  Here I updated ony ( add , addi , sub , subi, li , lw , sw , j , bne ) these instructions ,so only use these in this phase.
  In this phase for a given input file, output will give the same previous elements ( Memory and Register elements ). 
