@@ -543,24 +543,7 @@ bool PerformBEQZ (char a, int x)
         return false;
 }
 
-bool PerformBGE (char a,char b, int x,int y)
-{
-    int p,q;
-    if(a == 't')
-        p = R[x];
-    else if (a == 'r')
-        p = R[10+x];
 
-    if(b == 't')
-        q = R[y];
-    else if (b == 'r')
-        q = R[10+y];
-
-    if( p >= q)
-        return true;
-    else
-        return false;
-}
 
 bool PerformBLE (char a,char b, int x,int y)
 {
@@ -594,6 +577,24 @@ bool PerformLI (char a, int x,int y)
 
     return true;
 
+}
+
+bool PerformBGE (char a,char b, int x,int y)
+{
+    int p,q;
+    if(a == 't')
+        p = R[x];
+    else if (a == 'r')
+        p = R[10+x];
+
+    if(b == 't')
+        q = R[y];
+    else if (b == 'r')
+        q = R[10+y];
+    if( p >= q)
+        return true;
+    else
+        return false;
 }
 
 bool PerformLW (char a,char b, int x,int y,int z)
