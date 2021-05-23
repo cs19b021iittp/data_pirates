@@ -26,7 +26,7 @@ TO AVOID ANY ERRORS (For our code) FOLLOW THESE CONDITIONS :
          - addi $t0, $t1, 10 
   -> file should not be empty,
   -> we have only 20 registers at present ( t0,t1...t9 and r0,r1,...r9 ) so be careful of size and names of registers,
-  -> While using .word type extra ", ;" at the end of the line after giving inputs
+  -> While using .word type extra ", ;" at the end of the line after giving inputs and use this only in 1st line
          - .word 1, 3, -9, 5, 8, ;
   -> Dont use $zero , simpy use normal 0
   
@@ -56,6 +56,12 @@ TO AVOID ANY ERRORS (For our code) FOLLOW THESE CONDITIONS :
     -> should follow good pattern or spacing in add ,addi,.....as mentioned in README phase1 (above)
     -> If You feel you are not getting any output just save file again(any random comment) and run
     
+    
+# PHASE 3 ( Adding CACHE to PHASE 2 )
+    
+    Only for those instructions which needs values from memory (for Load and Store )
+    Here we try to fetch the values from our L1, L2 Cache which we implemented using LRU, non incusive policy
+    We can get number of stalls, cycles at each step and miss rates of corresponding impemented cache(s)
  
  
  
