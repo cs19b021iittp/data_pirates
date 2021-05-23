@@ -13,6 +13,7 @@ int stall = 0;
 
 int n = 100;       // file size
 string arr[100];   // Each one stores one line of file (Its not working if we write as arr[n] )
+string brr[100+1];
 
 
 bool Check ( string sentence, string word ) 
@@ -543,7 +544,24 @@ bool PerformBEQZ (char a, int x)
         return false;
 }
 
+bool PerformBGE (char a,char b, int x,int y)
+{
+    int p,q;
+    if(a == 't')
+        p = R[x];
+    else if (a == 'r')
+        p = R[10+x];
 
+    if(b == 't')
+        q = R[y];
+    else if (b == 'r')
+        q = R[10+y];
+
+    if( p >= q)
+        return true;
+    else
+        return false;
+}
 
 bool PerformBLE (char a,char b, int x,int y)
 {
@@ -579,24 +597,6 @@ bool PerformLI (char a, int x,int y)
 
 }
 
-bool PerformBGE (char a,char b, int x,int y)
-{
-    int p,q;
-    if(a == 't')
-        p = R[x];
-    else if (a == 'r')
-        p = R[10+x];
-
-    if(b == 't')
-        q = R[y];
-    else if (b == 'r')
-        q = R[10+y];
-    if( p >= q)
-        return true;
-    else
-        return false;
-}
-
 bool PerformLW (char a,char b, int x,int y,int z)
 {
     int q,r;
@@ -609,6 +609,9 @@ bool PerformLW (char a,char b, int x,int y,int z)
     
     // Now q will be having address in decimal value
     q = q + y;            // Adding offset
+
+
+
     q = q - base_address; // Removing base address
     q = q/4 ;             // To get index of Memory array
 
@@ -885,6 +888,8 @@ bool li_Check ( string sentence, string word )
                 // Now the variable int_temp holds the integer value of the string        
               
                 y = int_temp;   // storing integer value of 3rd register
+
+                base_address = y; // Assigning given address to  base_address
             
                 PerformLI (a,x,y);
             }
@@ -1414,6 +1419,7 @@ void UPDATE_REGISTERS ( int k )
     sw_Check ( arr[k], "sw" );      // Store word
 
     word_Check ( arr[k], ".word" );
+    // since we use this only 1 time in the 1st line
 
 }
 
@@ -1423,16 +1429,16 @@ void UPDATE_REGISTERS ( int k )
 
 int main()
 {
-    cout<< "****************( REGISTER & MEMORY )**********************"<<endl;    
+    cout<< "****************( REGISTER & MEMORY )**********************" <<endl;    
 
     // Assigning values to registers
-    int i=0;         
+    int i=0,j=0;         
     for(int i=0;i<32;i++)
        R[i] = 0;
 
     // Creating array of 4KB memory = 4 bytes x ( 1024 length )
     for (int i=0;i<1024;i++)
-        Mem[i] = 0;
+        Mem[i] = i;
 
 
     // Here we can clearly observe that this array holds fixed memory address in all cases
@@ -1448,7 +1454,20 @@ int main()
         cout << "error" << endl;
 
     while (getline(file,line))
-        arr[i++] = line;
+    {
+        brr[i++] = line;
+    }
+
+    // To leave 1st ine for .word elements
+    for(int i=0;i<100;i++)
+    {
+        arr[i] = brr[i+1];
+    }
+
+    // Now brr[0] will have .word  memory elements  
+    word_Check ( brr[0], ".word" );
+    cout << brr[0] << endl;
+        
 
     ////********************** M A P ********************////
 
@@ -1606,7 +1625,7 @@ int main()
 
     // Creating array of 4KB memory = 4 bytes x ( 1024 length )
     for (int i=0;i<1024;i++)
-        Mem[i] = 0;
+        Mem[i] = i;
 
     cycle = 0;
     stall = 0;    
@@ -1615,7 +1634,7 @@ int main()
     cout << "**************** (PIPELINING - FORWARDING ) **********************"<<endl;    
     cout << endl;
      
-    for (int k=0;k<n;k++)
+    for (int k=0;k< n ;k++)
     {  
         if ( Check_any ( arr[k] )  )
         {
@@ -1682,7 +1701,7 @@ int main()
         //else
         //{
         //   cout << arr[k] << endl;
-        //}
+        //} 
 
         
     } 
@@ -1701,7 +1720,7 @@ int main()
 
     // Creating array of 4KB memory = 4 bytes x ( 1024 length )
     for (int i=0;i<1024;i++)
-        Mem[i] = 0;
+        Mem[i] = i;
 
     cycle = 0;
     stall = 0;
@@ -1840,9 +1859,10 @@ int main()
         
     }
 
+    cout << endl;
     cout << " Total Number of CYCLES ( Non Forwarding ) : " << cycle << endl ;
-    cout << " Total Number of STALLS ( Non Forwarding ) : " << stall << endl << endl ;
-
+    cout << " Total Number of STALLS ( Non Forwarding ) : " << stall << endl ;
+    cout << endl;
 
 
     cout <<  "*********************************************************************" << endl;  
