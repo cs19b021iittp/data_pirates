@@ -10,6 +10,7 @@ int base_address;  // For lw and sw we need addresses of memory locations, we ca
 
 int cycle = 0;
 int stall = 0;
+int instruction = 0;
 
 int n = 100;       // file size
 string arr[100];   // Each one stores one line of file (Its not working if we write as arr[n] )
@@ -34,6 +35,7 @@ int Num_SetsInCache_L1 , Num_SetsInCache_L2 ;
 
 int access_L1 = 0, miss_L1 = 0;
 int access_L2 = 0, miss_L2 = 0;
+double miss_rate_L1, miss_rate_L2;
 
 int extract_TagValue(int address, int temp)
 {
@@ -279,8 +281,6 @@ class Set
     }
 };
 
-
-
 class Cache
 {
     public:
@@ -311,9 +311,9 @@ int FOUND_IN_CACHE (int address)
     int SetValue_L1 = extract_SetValue(address,0);
     int SetValue_L2 = extract_SetValue(address,1);
 
+    access_L1 ++;
     if(L1_Cache.access(address,0) == 1)
-    {
-        access_L1 ++;
+    {        
         return 1;
     }
     else
@@ -940,6 +940,7 @@ bool PerformLW (char a,char b, int x,int y,int z)
 
 
     // This small part is entire phase 3
+    // cout << "-------------- -  - - -- - -  --";
     int extra = FOUND_IN_CACHE (q);
     if (extra == 1)
     {
@@ -1804,7 +1805,7 @@ int main()
 
     // Creating array of 4KB memory = 4 bytes x ( 1024 length )
     for (int i=0;i<1024;i++)
-        Mem[i] = i;
+        Mem[i] = 0;
 
 
     // Here we can clearly observe that this array holds fixed memory address in all cases
@@ -1832,6 +1833,7 @@ int main()
 
     // Now brr[0] will have .word  memory elements  
     word_Check ( brr[0], ".word" );
+    // To Allocate Memory
     // cout << brr[0] << endl;
         
 
@@ -2026,7 +2028,7 @@ int main()
     // -------------------------- |_____________________|------------------------------------------
 
 
-    // Now to re-run the we need to EMPTY CACHE L1 and L2 again
+    // Now to re-run this we need to EMPTY CACHE L1 and L2 again
     
     for ( int i=0; i < Num_SetsInCache_L1 ; i++ )
     {
@@ -2045,7 +2047,7 @@ int main()
             L2_Cache.sets[i].blocks[j].lru = 0; 
         }
     }
-        
+    
     
 
     // ********************** ( F O R W A R D I N G ) ****************************
@@ -2056,10 +2058,19 @@ int main()
 
     // Creating array of 4KB memory = 4 bytes x ( 1024 length )
     for (int i=0;i<1024;i++)
-        Mem[i] = i;
+        Mem[i] = 0;
+
+    word_Check ( brr[0], ".word" );
+    // To Allocate Memory    
 
     cycle = 0;
     stall = 0;    
+    instruction = 0;
+
+    // Reset miss rate values
+    access_L1 = 0, miss_L1 = 0;
+    access_L2 = 0, miss_L2 = 0;
+
 
     cout << endl;
     cout << "**************** (PIPELINING - FORWARDING ) **********************"<<endl;    
@@ -2069,7 +2080,7 @@ int main()
     {  
         if ( Check_any ( arr[k] )  )
         {
-
+            instruction++;
             if (k == 0 )
             {
                 // Here the 1st line cant be empty and write any instruction simply ( li $t0, 0 )
@@ -2134,14 +2145,24 @@ int main()
         //   cout << arr[k] << endl;
         //} 
 
-        
-    } 
+    }
+
+    miss_rate_L1 = ((double)miss_L1)/((double)access_L1) ;
+    miss_rate_L2 = ((double)miss_L2)/((double)access_L2) ;
 
     cout << endl;
     cout << " Total Number of Cycles ( Forwarding ) : " << cycle << endl ;
     cout << " Total Number of STALLS ( Forwarding ) : " << stall << endl ;
+    cout << " Instructions per cycle(IPC)  value    : " << instruction << "/" << cycle  << endl ;
     cout << endl;
     
+    // Miss rates of corresponding caches
+    cout << "Cache Miss Rate Of L1: " << miss_L1 << "/" << access_L1 << endl ;
+    cout << "Cache Miss Rate Of L2: " << miss_L2 << "/" << access_L2 << endl ;
+    cout << endl;
+
+
+
 
     // **********************  ( N O N - F O R W A R D I N G )  *******************************************
 
@@ -2151,10 +2172,17 @@ int main()
 
     // Creating array of 4KB memory = 4 bytes x ( 1024 length )
     for (int i=0;i<1024;i++)
-        Mem[i] = i;
+        Mem[i] = 0;
+
+    word_Check ( brr[0], ".word" );
+    // To Allocate Memory
 
     cycle = 0;
     stall = 0;
+    instruction = 0;
+
+    access_L1 = 0, miss_L1 = 0;
+    access_L2 = 0, miss_L2 = 0;
 
     // Now to re-run the we need to EMPTY CACHE L1 and L2 again
     
@@ -2177,8 +2205,6 @@ int main()
     }
         
 
-
-
     cout << endl;
     cout <<  "**************** (PIPELINING - NON FORWARDING ) **********************" << endl;   
     cout << endl;
@@ -2187,6 +2213,7 @@ int main()
     {  
         if ( Check_any ( arr[k] )  )
         {
+            instruction++;
            
             if(k == 0)
               cycle+=5;
@@ -2264,6 +2291,7 @@ int main()
             }
 
             UPDATE_REGISTERS (k);
+            //cout << "HI";
 
 
             // To change the control flow to required line
@@ -2313,11 +2341,21 @@ int main()
         
     }
 
+    miss_rate_L1 = ((double)miss_L1)/((double)access_L1) ;
+    miss_rate_L2 = ((double)miss_L2)/((double)access_L2) ;
+    // cout << "--" << miss_L1 << "--" << access_L1 << endl;
+
     cout << endl;
     cout << " Total Number of CYCLES ( Non Forwarding ) : " << cycle << endl ;
     cout << " Total Number of STALLS ( Non Forwarding ) : " << stall << endl ;
+    cout << " Instructions per cycle(IPC)  value    : " << instruction << "/" << cycle  << endl ;
     cout << endl;
 
+    // Miss rates of corresponding caches
+    
+    cout << "Cache Miss Rate Of L1: " << miss_L1 << "/" << access_L1 << endl ;
+    cout << "Cache Miss Rate Of L2: " << miss_L2 << "/" << access_L2 << endl ;
+    cout << endl;
 
     cout <<  "*********************************************************************" << endl;  
 
@@ -2326,6 +2364,8 @@ int main()
 
 }
 
+// ------------------------------------ E N D --------------------------------------
+ 
 /*  EXCEPTIONS 
 
     -> If You feel you are not getting any output just save file again(any random comment) and run
@@ -2417,8 +2457,9 @@ exit:
 /*
 -----------------(INPUT FILE)-----------------
 
-li $t1, 25
-li $t2, 25
+.word 11, 22, 22, 33, 44, 55, 66, 77, ; 
+li $t1, 25 
+li $t2, 2 
 bne $t1, $t2, loop  
 li $t3, 3  
 li $t4, 4  
@@ -2428,48 +2469,112 @@ li $t7, 7
 li $t8, 8
 
 loop:
-li $t9, 9  
-lw $t7, 0($t9)
+li $t9, 52466
+lw $t1, 8($t9)
+lw $t2, 16($t9)
+lw $t3, 8($t9)
+
+
 
 ------------------( OUT PUT )-------------------
 
 // After printing Register and Memory elements we get the following output for pipelining
 
+****************( CACHE INPUTS )********************** 
+
+ Enter CacheSize_L1 ,BlockSize_L1 ,Associativity_L1 :2 1 1 
+ Enter CacheSize_L2 ,BlockSize_L2 ,Associativity_L2 :4 1 2 
+ Latency_L1, Latency_L2, Latency_MM 1 1 1 
+
+ ****************( REGISTER & MEMORY )**********************
+
+  Register Elements :
+
+ R[0] = 0
+ R[1] = 22
+ R[2] = 44
+ R[3] = 22
+ R[4] = 0
+ R[5] = 0
+ R[6] = 0
+ R[7] = 0
+ R[8] = 0
+ R[9] = 52466
+ R[10] = 0
+ R[11] = 0
+ R[12] = 0
+ R[13] = 0
+ R[14] = 0
+ R[15] = 0
+ R[16] = 0
+ R[17] = 0
+ R[18] = 0
+ R[19] = 0
+
+
+  Memory Elements :
+
+ Mem[0] = 11
+ Mem[1] = 22
+ Mem[2] = 22
+ Mem[3] = 33
+ Mem[4] = 44
+ Mem[5] = 55
+ Mem[6] = 66
+ Mem[7] = 77
+ Mem[8] = 0
+ Mem[9] = 0
+ Mem[10] = 0
+ Mem[11] = 0
+ Mem[12] = 0
+ Mem[13] = 0
+ Mem[14] = 0
+ Mem[15] = 0
+ Mem[16] = 0
+ Mem[17] = 0
+ Mem[18] = 0
+ Mem[19] = 0
+
+
 **************** (PIPELINING - FORWARDING ) **********************
 
- CYCLES: 5    STALLS: 0  >>    li $t1, 25
- CYCLES: 6    STALLS: 0  >>    li $t2, 25
- CYCLES: 7    STALLS: 0  >>    bne $t1, $t2, loop
- CYCLES: 8    STALLS: 0  >>    li $t3, 3
- CYCLES: 9    STALLS: 0  >>    li $t4, 4
- CYCLES: 10    STALLS: 0  >>    li $t5, 5
- CYCLES: 11    STALLS: 0  >>    li $t6, 6   
- CYCLES: 12    STALLS: 0  >>    li $t7, 7
- CYCLES: 13    STALLS: 0  >>    li $t8, 8
- CYCLES: 14    STALLS: 0  >>    li $t9, 9
- CYCLES: 16    STALLS: 1  >>    lw $t7, 0($t9)
+ CYCLES: 5    STALLS: 0  >>    li $t1, 25 
+ CYCLES: 6    STALLS: 0  >>    li $t2, 2
+ CYCLES: 7    STALLS: 0  >>    loop:
+ CYCLES: 8    STALLS: 0  >>    li $t9, 52466
+ CYCLES: 10    STALLS: 1  >>    lw $t1, 8($t9)
+ CYCLES: 12    STALLS: 2  >>    lw $t2, 16($t9)
+ CYCLES: 14    STALLS: 3  >>    lw $t3, 8($t9)
 
- Total Number of Cycles ( Forwarding ) : 16
- Total Number of STALLS ( Forwarding ) : 1
+ Total Number of Cycles ( Forwarding ) : 14
+ Total Number of STALLS ( Forwarding ) : 3
+ Instructions per cycle(IPC)  value    : 7/14
+
+Cache Miss Rate Of L1: 3/3
+Cache Miss Rate Of L2: 2/3
 
 
 **************** (PIPELINING - NON FORWARDING ) **********************
 
  CYCLES: 5    STALLS: 0  >>    li $t1, 25
- CYCLES: 6    STALLS: 0  >>    li $t2, 25
- CYCLES: 10    STALLS: 3  >>    bne $t1, $t2, loop
- CYCLES: 11    STALLS: 3  >>    li $t3, 3  
- CYCLES: 12    STALLS: 3  >>    li $t4, 4
- CYCLES: 13    STALLS: 3  >>    li $t5, 5
- CYCLES: 14    STALLS: 3  >>    li $t6, 6
- CYCLES: 15    STALLS: 3  >>    li $t7, 7
- CYCLES: 16    STALLS: 3  >>    li $t8, 8
- CYCLES: 17    STALLS: 3  >>    li $t9, 9
- CYCLES: 20    STALLS: 5  >>    lw $t7, 0($t9)
- Total Number of CYCLES ( Non Forwarding ) : 20
- Total Number of STALLS ( Non Forwarding ) : 5
+ CYCLES: 6    STALLS: 0  >>    li $t2, 2
+ CYCLES: 10    STALLS: 3  >>    loop:
+ CYCLES: 11    STALLS: 3  >>    li $t9, 52466
+ CYCLES: 14    STALLS: 5  >>    lw $t1, 8($t9)
+ CYCLES: 16    STALLS: 6  >>    lw $t2, 16($t9)
+ CYCLES: 17    STALLS: 6  >>    lw $t3, 8($t9)
+
+ Total Number of CYCLES ( Non Forwarding ) : 17
+ Total Number of STALLS ( Non Forwarding ) : 6
+ Instructions per cycle(IPC)  value    : 7/17
+
+Cache Miss Rate Of L1: 3/3
+Cache Miss Rate Of L2: 2/3
+
+*********************************************************************
+PS C:\MinGW\bin\sem4\CO\Phase_1> 
 
 
-// In this way you can check which line is having how many stalls
+// In this way you can check which line is having how many stalls and all other stuff
 
 */
