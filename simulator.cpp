@@ -509,8 +509,6 @@ bool li_Check ( string sentence, string word )
                 // Now the variable int_temp holds the integer value of the string        
               
                 y = int_temp;   // storing integer value of 3rd register
-
-                base_address = y; // Assigning given address to  base_address
             
                 PerformLI (a,x,y);
             }
@@ -1025,7 +1023,7 @@ void PrintAllMemory ( int Mem[] , int k )
 
 int main()
 {
-
+        
     int n = 100;      // file size
     string arr[n];   // Each one stores one line of file
 
@@ -1173,6 +1171,7 @@ int main()
 
             continue;
         }
+
 
     }
 
