@@ -81,7 +81,6 @@ int extract_SetValue(int address, int temp)
 
 }       
 
-
 int extract_OffsetValue(int address, int temp)
 {
     int actual = address;
@@ -298,9 +297,9 @@ int FOUND_IN_CACHE (int address)
     int SetValue_L1 = extract_SetValue(address,0);
     int SetValue_L2 = extract_SetValue(address,1);
 
+    access_L1 ++;
     if(L1_Cache.access(address,0) == 1)
-    {
-        access_L1 ++;
+    {   
         return 1;
     }
     else
